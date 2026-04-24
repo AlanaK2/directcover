@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "dependencies": {
     "@azure/ai-projects": "^1.0.0-beta.1",
-    "@azure/identity": "^4.5.0"
+    "@azure/core-auth": "^1.5.0"
   }
 }
