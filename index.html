@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Agente Azure</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #chat-container { width: 400px; height: 600px; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        #chat-box { flex: 1; padding: 20px; overflow-y: auto; border-bottom: 1px solid #eee; }
+        .message { margin-bottom: 15px; padding: 10px; border-radius: 8px; max-width: 80%; }
+        .user-msg { background: #0078d4; color: white; align-self: flex-end; margin-left: auto; }
+        .agent-msg { background: #e1e1e1; color: #333; }
+        #input-area { display: flex; padding: 10px; gap: 10px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
+        button { padding: 10px 15px; background: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div id="chat-container">
+    <div id="chat-box" id="messages"></div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Pergunte algo ao agente...">
+        <button onclick="enviarMensagem()">Enviar</button>
+    </div>
+</div>
+
+<script>
+    let threadId = null; // Guarda a conversa para manter o contexto
+
+    async function enviarMensagem() {
+        const input = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+        const texto = input.value.trim();
+
+        if (!texto) return;
+
+        // Adiciona mensagem do usuário na tela
+        chatBox.innerHTML += `<div class="message user-msg">${texto}</div>`;
+        input.value = '';
+
+        try {
+            // Chama a API da Azure Function que vamos criar
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: texto, threadId: threadId })
+            });
+
+            const data = await response.json();
+            threadId = data.threadId; // Atualiza o ID da conversa
+
+            // Adiciona resposta do agente na tela
+            chatBox.innerHTML += `<div class="message agent-msg">${data.reply}</div>`;
+        } catch (error) {
+            chatBox.innerHTML += `<div class="message agent-msg">Erro: Não consegui conectar ao agente.</div>`;
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+
+</body>
+</html>
